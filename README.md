@@ -158,9 +158,9 @@ cp -r merged_hf/global_step_650 merged_safetensors/
 
 ### Training Logs
 Training logs are saved under the tensorboard_export directory. I use the plotting tool to visualize all outputs as training curves, for example:
-![alt text](tensorboard_export\plots_page_2.png)
-![alt text](tensorboard_export\plots_page_7.png)
-![alt text](tensorboard_export\plots_page_29.png)
+![alt text](tensorboard_export/plots_page_2.png)
+![alt text](tensorboard_export/plots_page_7.png)
+![alt text](tensorboard_export/plots_page_29.png)
 
 ### Questions and Issues
 If you run into any problems, please open an issue.
