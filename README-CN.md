@@ -155,9 +155,9 @@ cp -r merged_hf/global_step_650 merged_safetensors/
 
 ### 训练日志输出
 训练日志会保存在tensorboard_export文件下，我通过绘图工具，将所有输出信息都绘制出训练曲线进行可视化，比如：
-![alt text](tensorboard_export\plots_page_2.png)
-![alt text](tensorboard_export\plots_page_7.png)
-![alt text](tensorboard_export\plots_page_29.png)
+![alt text](tensorboard_export/plots_page_2.png)
+![alt text](tensorboard_export/plots_page_7.png)
+![alt text](tensorboard_export/plots_page_29.png)
 
 ### 如果有哪些问题，欢迎在Issues中提出。
 ### 联系方式：邮箱18722164190@163.com
